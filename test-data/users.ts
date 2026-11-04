@@ -1,0 +1,11 @@
+export const USERS = {
+  standard: {
+    username: process.env.SWAG_USERNAME || 'standard_user',
+    password: process.env.SWAG_PASSWORD || 'secret_sauce',
+  },
+  lockedOut: {
+    username: 'locked_out_user',
+    password: process.env.SWAG_PASSWORD || 'secret_sauce',
+  },
+};
+
