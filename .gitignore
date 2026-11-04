@@ -3,7 +3,15 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.playwright-mcp/
 .env
 gunter.agent.md
+gunter.playwright.md
+AGENTS.md
+.agents/skills/gunter-playwright/
+.github/agents/gunter-playwright.agent.md
+
+
+
 
 

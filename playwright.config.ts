@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 15000,
+  timeout: 60000,
   expect: {
     timeout: 5000,
   },
@@ -15,7 +15,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'https://www.saucedemo.com',
     headless: false,
     launchOptions: {
-      slowMo: 800,
+      slowMo: 600,
     },
     actionTimeout: 5000,
     navigationTimeout: 10000,

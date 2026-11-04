@@ -6,6 +6,8 @@ export class LoginPage {
   readonly passwordInput: Locator;
   readonly loginButton: Locator;
   readonly errorMessage: Locator;
+  readonly menuButton: Locator;
+  readonly logoutLink: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -13,16 +15,31 @@ export class LoginPage {
     this.passwordInput = page.locator('[data-test="password"]');
     this.loginButton = page.locator('[data-test="login-button"]');
     this.errorMessage = page.locator('[data-test="error"]');
+    this.menuButton = page.getByRole('button', { name: 'Open Menu' });
+    this.logoutLink = page.locator('[data-test="logout-sidebar-link"]');
   }
 
   async goto(): Promise<void> {
     await this.page.goto('/');
   }
 
+  async expectLoginPageLoaded(): Promise<void> {
+    await expect(this.page).toHaveURL(/.*saucedemo\.com\/?$/);
+    await expect(this.usernameInput).toBeVisible();
+    await expect(this.passwordInput).toBeVisible();
+    await expect(this.loginButton).toBeVisible();
+  }
+
   async login(username: string, password: string): Promise<void> {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
+  }
+
+  async logout(): Promise<void> {
+    await this.menuButton.click();
+    await expect(this.logoutLink).toBeVisible();
+    await this.logoutLink.click();
   }
 
   async expectInventoryLoaded(): Promise<void> {
@@ -35,4 +52,3 @@ export class LoginPage {
     await expect(this.errorMessage).toContainText(expectedText);
   }
 }
-
