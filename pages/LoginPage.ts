@@ -6,6 +6,7 @@ export class LoginPage {
   readonly passwordInput: Locator;
   readonly loginButton: Locator;
   readonly errorMessage: Locator;
+  readonly errorCloseButton: Locator;
   readonly menuButton: Locator;
   readonly logoutLink: Locator;
 
@@ -15,12 +16,17 @@ export class LoginPage {
     this.passwordInput = page.locator('[data-test="password"]');
     this.loginButton = page.locator('[data-test="login-button"]');
     this.errorMessage = page.locator('[data-test="error"]');
+    this.errorCloseButton = page.locator('[data-test="error-button"]');
     this.menuButton = page.getByRole('button', { name: 'Open Menu' });
     this.logoutLink = page.locator('[data-test="logout-sidebar-link"]');
   }
 
   async goto(): Promise<void> {
     await this.page.goto('/');
+  }
+
+  async gotoProtectedRoute(route: string): Promise<void> {
+    await this.page.goto(route);
   }
 
   async expectLoginPageLoaded(): Promise<void> {
@@ -50,5 +56,10 @@ export class LoginPage {
   async expectErrorMessage(expectedText: string): Promise<void> {
     await expect(this.errorMessage).toBeVisible();
     await expect(this.errorMessage).toContainText(expectedText);
+  }
+
+  async dismissErrorMessage(): Promise<void> {
+    await this.errorCloseButton.click();
+    await expect(this.errorMessage).toBeHidden();
   }
 }

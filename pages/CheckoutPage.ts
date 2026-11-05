@@ -7,8 +7,11 @@ export class CheckoutPage {
   readonly lastNameInput: Locator;
   readonly postalCodeInput: Locator;
   readonly continueButton: Locator;
+  readonly cancelButton: Locator;
   readonly finishButton: Locator;
   readonly backHomeButton: Locator;
+  readonly errorMessage: Locator;
+  readonly errorCloseButton: Locator;
   readonly paymentInfoValue: Locator;
   readonly shippingInfoValue: Locator;
   readonly subtotalLabel: Locator;
@@ -24,8 +27,11 @@ export class CheckoutPage {
     this.lastNameInput = page.locator('[data-test="lastName"]');
     this.postalCodeInput = page.locator('[data-test="postalCode"]');
     this.continueButton = page.locator('[data-test="continue"]');
+    this.cancelButton = page.locator('[data-test="cancel"]');
     this.finishButton = page.locator('[data-test="finish"]');
     this.backHomeButton = page.locator('[data-test="back-to-products"]');
+    this.errorMessage = page.locator('[data-test="error"]');
+    this.errorCloseButton = page.locator('[data-test="error-button"]');
     this.paymentInfoValue = page.locator('[data-test="payment-info-value"]');
     this.shippingInfoValue = page.locator('[data-test="shipping-info-value"]');
     this.subtotalLabel = page.locator('[data-test="subtotal-label"]');
@@ -45,6 +51,21 @@ export class CheckoutPage {
     await this.lastNameInput.fill(lastName);
     await this.postalCodeInput.fill(postalCode);
     await this.continueButton.click();
+  }
+
+  async expectCheckoutError(expectedText: string): Promise<void> {
+    await expect(this.errorMessage).toBeVisible();
+    await expect(this.errorMessage).toHaveText(expectedText);
+  }
+
+  async dismissCheckoutError(): Promise<void> {
+    await this.errorCloseButton.click();
+    await expect(this.errorMessage).toBeHidden();
+  }
+
+  async cancelCheckout(): Promise<void> {
+    await this.cancelButton.click();
+    await expect(this.page).toHaveURL(/.*cart\.html/);
   }
 
   async expectOverviewLoaded(expectedSubtotal: string, expectedTax: string, expectedTotal: string): Promise<void> {
@@ -75,4 +96,3 @@ export class CheckoutPage {
     await expect(this.page).toHaveURL(/.*inventory\.html/);
   }
 }
-

@@ -2,11 +2,13 @@
 
 ## Autenticação e Sessão (`LoginPage`)
 - `goto()`: Navega para a página inicial (`/`).
+- `gotoProtectedRoute(route)`: Tenta navegar diretamente para uma rota protegida (ex.: `/inventory.html`) sem autenticação prévia.
 - `expectLoginPageLoaded()`: Valida URL inicial e visibilidade dos campos `username`, `password` e botão `login`.
 - `login(username, password)`: Preenche credenciais e submete o formulário de login.
 - `logout()`: Abre o menu lateral (`Open Menu`) e aciona `Logout` (`[data-test="logout-sidebar-link"]`).
 - `expectInventoryLoaded()`: Valida redirecionamento para `/inventory.html` e título `Products`.
-- `expectErrorMessage(expectedText)`: Valida visibilidade e conteúdo do alerta de erro de autenticação.
+- `expectErrorMessage(expectedText)`: Valida visibilidade e conteúdo do alerta de erro de autenticação (`[data-test="error"]`).
+- `dismissErrorMessage()`: Clica no botão `X` (`[data-test="error-button"]`) do alerta de erro de login e valida que o banner desapareceu (`toBeHidden()`).
 
 ## Catálogo e Detalhes de Produto (`InventoryPage`)
 - `expectCatalogLoaded(expectedCount)`: Valida URL `/inventory.html`, título `Products` e quantidade de itens listados (padrão `6`).
@@ -21,7 +23,7 @@
 - `goToCart()`: Navega para o carrinho (`[data-test="shopping-cart-link"]`).
 
 ## Carrinho de Compras (`CartPage`)
-- `expectCartLoaded(expectedItemCount)`: Valida URL `/cart.html`, título `Your Cart` e quantidade de produtos no carrinho.
+- `expectCartLoaded(expectedItemCount)`: Valida URL `/cart.html`, título `Your Cart` e quantidade de produtos no carrinho (suporta `0` para carrinho vazio).
 - `expectProductInCart(productName)`: Valida presença do produto listado no carrinho.
 - `removeProductBySlug(productSlug)`: Remove um produto do carrinho (`[data-test="remove-<slug>"]`).
 - `continueShopping()`: Clica em `Continue Shopping` (`[data-test="continue-shopping"]`) e retorna ao catálogo.
@@ -30,6 +32,9 @@
 ## Fluxo de Checkout (`CheckoutPage`)
 - `expectStepOneLoaded()`: Valida URL `/checkout-step-one.html` e título `Checkout: Your Information`.
 - `fillCustomerInfoAndContinue(firstName, lastName, postalCode)`: Preenche dados do comprador e avança (`[data-test="continue"]`).
+- `expectCheckoutError(expectedText)`: Valida visibilidade e texto exato do alerta de erro de validação cadastral no Checkout (`[data-test="error"]`).
+- `dismissCheckoutError()`: Clica no botão `X` (`[data-test="error-button"]`) do erro de Checkout e valida ocultação do alerta.
+- `cancelCheckout()`: Clica no botão `Cancel` (`[data-test="cancel"]`) no Step One e valida retorno a `/cart.html`.
 - `expectOverviewLoaded(expectedSubtotal, expectedTax, expectedTotal)`: Valida URL `/checkout-step-two.html`, título `Checkout: Overview`, `SauceCard #31337`, `Free Pony Express Delivery!` e valores financeiros.
 - `finishOrder()`: Finaliza o pedido (`[data-test="finish"]`).
 - `expectOrderComplete()`: Valida URL `/checkout-complete.html`, título `Checkout: Complete!`, header `Thank you for your order!` e mensagem de despacho.
