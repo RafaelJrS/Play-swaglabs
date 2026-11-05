@@ -9,6 +9,11 @@ export const PRODUCTS = {
     slug: 'sauce-labs-bike-light',
     price: '$9.99',
   },
+  boltTShirt: {
+    name: 'Sauce Labs Bolt T-Shirt',
+    slug: 'sauce-labs-bolt-t-shirt',
+    price: '$15.99',
+  },
   onesie: {
     name: 'Sauce Labs Onesie',
     slug: 'sauce-labs-onesie',
@@ -26,9 +31,17 @@ export const PRODUCTS = {
   },
 };
 
+export const ALL_PRODUCT_SLUGS = [
+  PRODUCTS.backpack.slug,
+  PRODUCTS.bikeLight.slug,
+  PRODUCTS.boltTShirt.slug,
+  PRODUCTS.fleeceJacket.slug,
+  PRODUCTS.onesie.slug,
+  PRODUCTS.redTShirt.slug,
+];
+
 export const CUSTOMER = {
   firstName: process.env.SWAG_FIRST_NAME || 'Rafael',
   lastName: process.env.SWAG_LAST_NAME || 'Silva',
   postalCode: process.env.SWAG_POSTAL_CODE || '01001-000',
 };
-

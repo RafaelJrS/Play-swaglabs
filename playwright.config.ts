@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './tests',
   timeout: 60000,
   expect: {
-    timeout: 5000,
+    timeout: 10000,
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -17,7 +17,7 @@ export default defineConfig({
     launchOptions: {
       slowMo: 600,
     },
-    actionTimeout: 5000,
+    actionTimeout: 10000,
     navigationTimeout: 10000,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',

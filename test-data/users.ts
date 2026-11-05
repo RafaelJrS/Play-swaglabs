@@ -7,6 +7,14 @@ export const USERS = {
     username: 'locked_out_user',
     password: process.env.SWAG_PASSWORD || 'secret_sauce',
   },
+  performanceGlitch: {
+    username: 'performance_glitch_user',
+    password: process.env.SWAG_PASSWORD || 'secret_sauce',
+  },
+  problem: {
+    username: 'problem_user',
+    password: process.env.SWAG_PASSWORD || 'secret_sauce',
+  },
   invalid: {
     username: 'usuario_inexistente',
     password: 'senha_incorreta_123',
@@ -20,6 +28,8 @@ export const ERROR_MESSAGES = {
     invalidCredentials: 'Epic sadface: Username and password do not match any user in this service',
     lockedOut: 'Epic sadface: Sorry, this user has been locked out.',
     unauthorizedInventory: "Epic sadface: You can only access '/inventory.html' when you are logged in.",
+    unauthorizedCart: "Epic sadface: You can only access '/cart.html' when you are logged in.",
+    unauthorizedCheckout: "Epic sadface: You can only access '/checkout-step-one.html' when you are logged in.",
   },
   checkout: {
     firstNameRequired: 'Error: First Name is required',

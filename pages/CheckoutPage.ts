@@ -68,6 +68,11 @@ export class CheckoutPage {
     await expect(this.page).toHaveURL(/.*cart\.html/);
   }
 
+  async cancelFromOverview(): Promise<void> {
+    await this.cancelButton.click();
+    await expect(this.page).toHaveURL(/.*inventory\.html/);
+  }
+
   async expectOverviewLoaded(expectedSubtotal: string, expectedTax: string, expectedTotal: string): Promise<void> {
     await expect(this.page).toHaveURL(/.*checkout-step-two\.html/);
     await expect(this.pageTitle).toHaveText('Checkout: Overview');

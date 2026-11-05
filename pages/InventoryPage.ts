@@ -12,6 +12,11 @@ export class InventoryPage {
   readonly backToProductsButton: Locator;
   readonly detailAddToCartButton: Locator;
   readonly detailRemoveButton: Locator;
+  readonly twitterLink: Locator;
+  readonly facebookLink: Locator;
+  readonly linkedinLink: Locator;
+  readonly footerCopy: Locator;
+  readonly backpackImage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -25,6 +30,11 @@ export class InventoryPage {
     this.backToProductsButton = page.locator('[data-test="back-to-products"]');
     this.detailAddToCartButton = page.locator('[data-test="add-to-cart"]');
     this.detailRemoveButton = page.locator('[data-test="remove"]');
+    this.twitterLink = page.getByRole('link', { name: 'X' });
+    this.facebookLink = page.getByRole('link', { name: 'Facebook' });
+    this.linkedinLink = page.getByRole('link', { name: 'LinkedIn' });
+    this.footerCopy = page.locator('[data-test="footer-copy"]');
+    this.backpackImage = page.locator('[data-test="inventory-item-sauce-labs-backpack-img"]');
   }
 
   async expectCatalogLoaded(expectedCount = 6): Promise<void> {
@@ -80,5 +90,19 @@ export class InventoryPage {
   async goToCart(): Promise<void> {
     await this.cartLink.click();
   }
-}
 
+  async reloadCatalog(): Promise<void> {
+    await this.page.reload();
+  }
+
+  async expectFooterLinksAndCopyright(): Promise<void> {
+    await expect(this.twitterLink).toHaveAttribute('href', 'https://x.com/saucelabs');
+    await expect(this.facebookLink).toHaveAttribute('href', 'https://www.facebook.com/saucelabs');
+    await expect(this.linkedinLink).toHaveAttribute('href', 'https://www.linkedin.com/company/sauce-labs/');
+    await expect(this.footerCopy).toContainText('Sauce Labs. All Rights Reserved.');
+  }
+
+  async expectBackpackImageSrcContains(expectedSubstring: string): Promise<void> {
+    await expect(this.backpackImage).toHaveAttribute('src', new RegExp(expectedSubstring));
+  }
+}

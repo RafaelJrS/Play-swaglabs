@@ -8,7 +8,11 @@ export class LoginPage {
   readonly errorMessage: Locator;
   readonly errorCloseButton: Locator;
   readonly menuButton: Locator;
+  readonly closeMenuButton: Locator;
+  readonly allItemsLink: Locator;
+  readonly aboutLink: Locator;
   readonly logoutLink: Locator;
+  readonly resetAppStateLink: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -18,7 +22,11 @@ export class LoginPage {
     this.errorMessage = page.locator('[data-test="error"]');
     this.errorCloseButton = page.locator('[data-test="error-button"]');
     this.menuButton = page.getByRole('button', { name: 'Open Menu' });
+    this.closeMenuButton = page.getByRole('button', { name: 'Close Menu' });
+    this.allItemsLink = page.locator('[data-test="inventory-sidebar-link"]');
+    this.aboutLink = page.locator('[data-test="about-sidebar-link"]');
     this.logoutLink = page.locator('[data-test="logout-sidebar-link"]');
+    this.resetAppStateLink = page.locator('[data-test="reset-sidebar-link"]');
   }
 
   async goto(): Promise<void> {
@@ -46,6 +54,19 @@ export class LoginPage {
     await this.menuButton.click();
     await expect(this.logoutLink).toBeVisible();
     await this.logoutLink.click();
+  }
+
+  async resetAppState(): Promise<void> {
+    await this.menuButton.click();
+    await expect(this.resetAppStateLink).toBeVisible();
+    await this.resetAppStateLink.click();
+    await this.closeMenuButton.click();
+  }
+
+  async expectAboutLinkAndNavigateToAllItems(): Promise<void> {
+    await this.menuButton.click();
+    await expect(this.aboutLink).toHaveAttribute('href', 'https://saucelabs.com/');
+    await this.allItemsLink.click();
   }
 
   async expectInventoryLoaded(): Promise<void> {
