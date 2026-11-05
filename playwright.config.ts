@@ -1,24 +1,26 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
   testDir: './tests',
   timeout: 60000,
   expect: {
     timeout: 10000,
   },
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: 1,
+  fullyParallel: isCI,
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 2 : 1,
   reporter: [['html', { open: 'never' }]],
   use: {
     baseURL: process.env.BASE_URL || 'https://www.saucedemo.com',
-    headless: false,
+    headless: isCI,
     launchOptions: {
-      slowMo: 600,
+      slowMo: isCI ? 0 : 600,
     },
     actionTimeout: 10000,
-    navigationTimeout: 10000,
+    navigationTimeout: 15000,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',
@@ -26,8 +28,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(isCI ? {} : { channel: 'chrome' }),
+      },
     },
   ],
 });
-
