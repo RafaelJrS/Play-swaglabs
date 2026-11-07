@@ -1,4 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { PAGE_TITLES } from '../test-data/app-content';
+import type { Product } from '../test-data/types';
 
 export class CartPage {
   readonly page: Page;
@@ -19,16 +21,16 @@ export class CartPage {
 
   async expectCartLoaded(expectedItemCount: number): Promise<void> {
     await expect(this.page).toHaveURL(/.*cart\.html/);
-    await expect(this.pageTitle).toHaveText('Your Cart');
+    await expect(this.pageTitle).toHaveText(PAGE_TITLES.cart);
     await expect(this.cartItems).toHaveCount(expectedItemCount);
   }
 
-  async expectProductInCart(productName: string): Promise<void> {
-    await expect(this.itemNames.filter({ hasText: productName })).toBeVisible();
+  async expectProductInCart(product: Product): Promise<void> {
+    await expect(this.itemNames.filter({ hasText: product.name })).toBeVisible();
   }
 
-  async removeProductBySlug(productSlug: string): Promise<void> {
-    await this.page.locator(`[data-test="remove-${productSlug}"]`).click();
+  async removeProduct(product: Product): Promise<void> {
+    await this.page.locator(`[data-test="remove-${product.slug}"]`).click();
   }
 
   async continueShopping(): Promise<void> {
@@ -40,4 +42,3 @@ export class CartPage {
     await this.checkoutButton.click();
   }
 }
-

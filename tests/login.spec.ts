@@ -1,22 +1,22 @@
-import { test } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
+import { test } from '../fixtures/pom.fixture';
+import { ERROR_MESSAGES } from '../test-data/app-content';
 import { USERS } from '../test-data/users';
 
-test.describe('Swag Labs - Autenticação', () => {
-  test('Deve realizar login com sucesso usando usuário padrão', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-
+test.describe('Swag Labs - Autenticação', { tag: ['@smoke', '@auth'] }, () => {
+  test.beforeEach(async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await loginPage.expectInventoryLoaded();
   });
 
-  test('Deve exibir mensagem de erro para usuário bloqueado', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+  test('Deve realizar login com sucesso usando usuário padrão', async ({
+    loginPage,
+    inventoryPage,
+  }) => {
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.expectCatalogLoaded();
+  });
 
-    await loginPage.goto();
-    await loginPage.login(USERS.lockedOut.username, USERS.lockedOut.password);
-    await loginPage.expectErrorMessage('Epic sadface: Sorry, this user has been locked out.');
+  test('Deve exibir mensagem de erro para usuário bloqueado', async ({ loginPage }) => {
+    await loginPage.loginAs(USERS.lockedOut);
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.login.lockedOut);
   });
 });
-

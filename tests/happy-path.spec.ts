@@ -3,17 +3,17 @@
 
 import { test } from '../fixtures/pom.fixture';
 import { USERS } from '../test-data/users';
-import { PRODUCTS, CUSTOMER } from '../test-data/checkout';
+import { PRODUCTS, CUSTOMER, ORDER_SUMMARIES } from '../test-data/checkout';
 
-test.describe('Swag Labs - Jornadas de Sucesso (Happy Path)', () => {
-  test('CT01 - Autenticação e Logout pelo Menu Lateral', async ({ loginPage, inventoryPage }) => {
+test.describe('Swag Labs - Jornadas de Sucesso (Happy Path)', { tag: '@smoke' }, () => {
+  test('CT01 - Autenticação e Logout pelo Menu Lateral', async ({ loginPage, inventoryPage, sideMenu }) => {
     await loginPage.goto();
     await loginPage.expectLoginPageLoaded();
 
     await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
+    await inventoryPage.expectCatalogLoaded();
 
-    await loginPage.logout();
+    await sideMenu.logout();
     await loginPage.expectLoginPageLoaded();
   });
 
@@ -21,99 +21,87 @@ test.describe('Swag Labs - Jornadas de Sucesso (Happy Path)', () => {
     loginPage,
     inventoryPage,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
-
-    await inventoryPage.expectFirstProduct(PRODUCTS.backpack.name, PRODUCTS.backpack.price);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.expectCatalogLoaded();
+    await inventoryPage.expectFirstProduct(PRODUCTS.backpack);
 
     await inventoryPage.sortBy('za');
-    await inventoryPage.expectFirstProduct(PRODUCTS.redTShirt.name, PRODUCTS.redTShirt.price);
+    await inventoryPage.expectFirstProduct(PRODUCTS.redTShirt);
 
     await inventoryPage.sortBy('lohi');
-    await inventoryPage.expectFirstProduct(PRODUCTS.onesie.name, PRODUCTS.onesie.price);
+    await inventoryPage.expectFirstProduct(PRODUCTS.onesie);
 
     await inventoryPage.sortBy('hilo');
-    await inventoryPage.expectFirstProduct(PRODUCTS.fleeceJacket.name, PRODUCTS.fleeceJacket.price);
+    await inventoryPage.expectFirstProduct(PRODUCTS.fleeceJacket);
   });
 
   test('CT03 - Inspeção de Detalhes do Produto, Adição ao Carrinho e Retorno ao Catálogo', async ({
     loginPage,
     inventoryPage,
+    productDetailPage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.openProductDetails(PRODUCTS.backpack);
+    await productDetailPage.expectLoaded(PRODUCTS.backpack);
 
-    await inventoryPage.openProductDetails(PRODUCTS.backpack.name);
-    await inventoryPage.expectProductDetailLoaded(PRODUCTS.backpack.name, PRODUCTS.backpack.price);
+    await productDetailPage.addToCart();
+    await header.expectCartBadgeCount(1);
 
-    await inventoryPage.addFromDetailsAndVerify();
-    await inventoryPage.expectCartBadgeCount(1);
-
-    await inventoryPage.backToCatalog();
-    await inventoryPage.expectCartBadgeCount(1);
+    await productDetailPage.backToProducts();
+    await inventoryPage.expectCatalogLoaded();
+    await header.expectCartBadgeCount(1);
   });
 
   test('CT04 - Gestão do Carrinho (Adicionar Múltiplos Itens, Remover Item e Continuar Comprando)', async ({
     loginPage,
     inventoryPage,
     cartPage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.addProductsToCart([PRODUCTS.backpack, PRODUCTS.bikeLight]);
+    await header.expectCartBadgeCount(2);
 
-    await inventoryPage.addProductBySlug(PRODUCTS.backpack.slug);
-    await inventoryPage.addProductBySlug(PRODUCTS.bikeLight.slug);
-    await inventoryPage.expectCartBadgeCount(2);
-
-    await inventoryPage.goToCart();
+    await header.goToCart();
     await cartPage.expectCartLoaded(2);
-    await cartPage.expectProductInCart(PRODUCTS.backpack.name);
-    await cartPage.expectProductInCart(PRODUCTS.bikeLight.name);
+    await cartPage.expectProductInCart(PRODUCTS.backpack);
+    await cartPage.expectProductInCart(PRODUCTS.bikeLight);
 
-    await cartPage.removeProductBySlug(PRODUCTS.bikeLight.slug);
+    await cartPage.removeProduct(PRODUCTS.bikeLight);
     await cartPage.expectCartLoaded(1);
-    await inventoryPage.expectCartBadgeCount(1);
+    await header.expectCartBadgeCount(1);
 
     await cartPage.continueShopping();
-    await inventoryPage.expectCatalogLoaded(6);
+    await inventoryPage.expectCatalogLoaded();
   });
 
   test('CT05 - Fluxo E2E Completo de Compra (Login -> Catálogo -> Carrinho -> Checkout Step 1 -> Step 2 -> Pedido Concluído -> Back Home)', async ({
     loginPage,
     inventoryPage,
     cartPage,
-    checkoutPage,
+    checkoutInformationPage,
+    checkoutOverviewPage,
+    checkoutCompletePage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.addProductsToCart([PRODUCTS.backpack, PRODUCTS.bikeLight]);
+    await header.expectCartBadgeCount(2);
 
-    await inventoryPage.addProductBySlug(PRODUCTS.backpack.slug);
-    await inventoryPage.addProductBySlug(PRODUCTS.bikeLight.slug);
-    await inventoryPage.expectCartBadgeCount(2);
-
-    await inventoryPage.goToCart();
+    await header.goToCart();
     await cartPage.expectCartLoaded(2);
-
     await cartPage.proceedToCheckout();
-    await checkoutPage.expectStepOneLoaded();
 
-    await checkoutPage.fillCustomerInfoAndContinue(
-      CUSTOMER.firstName,
-      CUSTOMER.lastName,
-      CUSTOMER.postalCode
-    );
-    await checkoutPage.expectOverviewLoaded('Item total: $39.98', 'Tax: $3.20', 'Total: $43.18');
+    await checkoutInformationPage.expectLoaded();
+    await checkoutInformationPage.submitCustomerInfo(CUSTOMER);
 
-    await checkoutPage.finishOrder();
-    await checkoutPage.expectOrderComplete();
+    await checkoutOverviewPage.expectLoaded(ORDER_SUMMARIES.backpackAndBikeLight);
+    await checkoutOverviewPage.finish();
 
-    await checkoutPage.backToHome();
-    await inventoryPage.expectCatalogLoaded(6);
-    await inventoryPage.expectCartBadgeCount(0);
+    await checkoutCompletePage.expectLoaded();
+    await checkoutCompletePage.backHome();
+    await inventoryPage.expectCatalogLoaded();
+    await header.expectCartBadgeCount(0);
   });
 });
-

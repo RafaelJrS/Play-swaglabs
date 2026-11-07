@@ -2,10 +2,11 @@
 // seed: tests/seed.spec.ts
 
 import { test } from '../fixtures/pom.fixture';
-import { USERS, ERROR_MESSAGES } from '../test-data/users';
+import { USERS } from '../test-data/users';
 import { CUSTOMER } from '../test-data/checkout';
+import { ERROR_MESSAGES } from '../test-data/app-content';
 
-test.describe('Swag Labs - Validações de Erro, Restrições e Carrinho Vazio', () => {
+test.describe('Swag Labs - Validações de Erro, Restrições e Carrinho Vazio', { tag: '@negative' }, () => {
   test('CT01 - Deve exibir erro ao tentar login sem preencher o campo Username', async ({ loginPage }) => {
     await loginPage.goto();
     await loginPage.login('', USERS.standard.password);
@@ -27,8 +28,7 @@ test.describe('Swag Labs - Validações de Erro, Restrições e Carrinho Vazio',
   test('CT04 - Deve exibir erro para usuário bloqueado e permitir fechar o alerta de erro (X)', async ({
     loginPage,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.lockedOut.username, USERS.lockedOut.password);
+    await loginPage.loginAs(USERS.lockedOut);
     await loginPage.expectErrorMessage(ERROR_MESSAGES.login.lockedOut);
     await loginPage.dismissErrorMessage();
   });
@@ -43,67 +43,49 @@ test.describe('Swag Labs - Validações de Erro, Restrições e Carrinho Vazio',
     loginPage,
     inventoryPage,
     cartPage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
-    await inventoryPage.expectCartBadgeCount(0);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.expectCatalogLoaded();
+    await header.expectCartBadgeCount(0);
 
-    await inventoryPage.goToCart();
+    await header.goToCart();
     await cartPage.expectCartLoaded(0);
-    await inventoryPage.expectCartBadgeCount(0);
+    await header.expectCartBadgeCount(0);
   });
 
-  test('CT07 - Deve exibir erro no Checkout ao avançar sem preencher First Name (Nome obrigatório)', async ({
-    loginPage,
-    inventoryPage,
-    cartPage,
-    checkoutPage,
-  }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.goToCart();
-    await cartPage.proceedToCheckout();
-    await checkoutPage.expectStepOneLoaded();
+  test.describe('Checkout Step One - Campos Obrigatórios', () => {
+    test.beforeEach(async ({ loginPage, header, cartPage, checkoutInformationPage }) => {
+      await loginPage.loginAs(USERS.standard);
+      await header.goToCart();
+      await cartPage.proceedToCheckout();
+      await checkoutInformationPage.expectLoaded();
+    });
 
-    await checkoutPage.fillCustomerInfoAndContinue('', CUSTOMER.lastName, CUSTOMER.postalCode);
-    await checkoutPage.expectCheckoutError(ERROR_MESSAGES.checkout.firstNameRequired);
-  });
+    test('CT07 - Deve exibir erro no Checkout ao avançar sem preencher First Name (Nome obrigatório)', async ({
+      checkoutInformationPage,
+    }) => {
+      await checkoutInformationPage.submitCustomerInfo({ ...CUSTOMER, firstName: '' });
+      await checkoutInformationPage.expectErrorMessage(ERROR_MESSAGES.checkout.firstNameRequired);
+    });
 
-  test('CT08 - Deve exibir erro no Checkout ao avançar sem preencher Last Name (Sobrenome obrigatório)', async ({
-    loginPage,
-    inventoryPage,
-    cartPage,
-    checkoutPage,
-  }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.goToCart();
-    await cartPage.proceedToCheckout();
-    await checkoutPage.expectStepOneLoaded();
+    test('CT08 - Deve exibir erro no Checkout ao avançar sem preencher Last Name (Sobrenome obrigatório)', async ({
+      checkoutInformationPage,
+    }) => {
+      await checkoutInformationPage.submitCustomerInfo({ ...CUSTOMER, lastName: '' });
+      await checkoutInformationPage.expectErrorMessage(ERROR_MESSAGES.checkout.lastNameRequired);
+    });
 
-    await checkoutPage.fillCustomerInfoAndContinue(CUSTOMER.firstName, '', CUSTOMER.postalCode);
-    await checkoutPage.expectCheckoutError(ERROR_MESSAGES.checkout.lastNameRequired);
-  });
+    test('CT09 - Deve exibir erro no Checkout sem Postal Code (CEP/Cadastro), fechar o alerta e cancelar retorno ao carrinho', async ({
+      checkoutInformationPage,
+      cartPage,
+    }) => {
+      await checkoutInformationPage.submitCustomerInfo({ ...CUSTOMER, postalCode: '' });
+      await checkoutInformationPage.expectErrorMessage(ERROR_MESSAGES.checkout.postalCodeRequired);
 
-  test('CT09 - Deve exibir erro no Checkout sem Postal Code (CEP/Cadastro), fechar o alerta e cancelar retorno ao carrinho', async ({
-    loginPage,
-    inventoryPage,
-    cartPage,
-    checkoutPage,
-  }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.goToCart();
-    await cartPage.proceedToCheckout();
-    await checkoutPage.expectStepOneLoaded();
-
-    await checkoutPage.fillCustomerInfoAndContinue(CUSTOMER.firstName, CUSTOMER.lastName, '');
-    await checkoutPage.expectCheckoutError(ERROR_MESSAGES.checkout.postalCodeRequired);
-
-    await checkoutPage.dismissCheckoutError();
-    await checkoutPage.cancelCheckout();
-    await cartPage.expectCartLoaded(0);
+      await checkoutInformationPage.dismissErrorMessage();
+      await checkoutInformationPage.cancel();
+      await cartPage.expectCartLoaded(0);
+    });
   });
 });
-

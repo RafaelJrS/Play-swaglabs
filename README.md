@@ -44,19 +44,35 @@ A estrutura do projeto une a separação clássica em camadas do **Page Object M
 │   └── 📁 workflows/           # Pipelines CI/CD (playwright.yml, copilot-setup-steps.yml)
 ├── 📁 .vscode/                 # Configuração local dos servidores MCP (mcp.json)
 ├── 📁 context/                 # Living Context (documentação viva de arquitetura e padrões)
-├── 📁 fixtures/                # Fixtures customizadas para injeção de Page Objects (pom.fixture.ts)
-├── 📁 pages/                   # Page Object Model (POM) com locadores e ações de negócio
-│   └── 📄 LoginPage.ts
+├── 📁 fixtures/                # Fixtures customizadas para injeção de Pages e Components (pom.fixture.ts)
+├── 📁 pages/                   # Page Object Model (POM) sob Single Responsibility Principle (SRP)
+│   ├── 📁 components/          # Componentes UI transversais (Header, SideMenu, Footer, ErrorBanner)
+│   ├── 📄 LoginPage.ts
+│   ├── 📄 InventoryPage.ts
+│   ├── 📄 ProductDetailPage.ts
+│   ├── 📄 CartPage.ts
+│   ├── 📄 CheckoutInformationPage.ts
+│   ├── 📄 CheckoutOverviewPage.ts
+│   └── 📄 CheckoutCompletePage.ts
 ├── 📁 specs/                   # Planos de teste em Markdown gerados pelo agente Planner
-│   └── 📄 README.md
-├── 📁 test-data/               # Massa de dados isolada e parametrizada via ambiente
-│   └── 📄 users.ts
-├── 📁 tests/                   # Cenários executáveis (.spec.ts) e seed de ambiente
+│   ├── 📄 swaglabs-happy-path.md
+│   ├── 📄 swaglabs-error-scenarios.md
+│   └── 📄 swaglabs-advanced-scenarios.md
+├── 📁 test-data/               # Massa de dados tipada e parametrizada via ambiente
+│   ├── 📄 types.ts
+│   ├── 📄 app-content.ts
+│   ├── 📄 users.ts
+│   └── 📄 checkout.ts
+├── 📁 tests/                   # Cenários executáveis (.spec.ts) com tags (@smoke, @negative, @regression)
 │   ├── 📄 login.spec.ts
+│   ├── 📄 happy-path.spec.ts
+│   ├── 📄 error-scenarios.spec.ts
+│   ├── 📄 advanced-scenarios.spec.ts
 │   └── 📄 seed.spec.ts
 ├── 📁 utils/                   # Funções utilitárias de suporte (env.ts)
 ├── 📄 .mcp.json                # Configuração dos servidores MCP na raiz do projeto
-├── 📄 playwright.config.ts     # Configuração central do Playwright Test Runner
+├── 📄 playwright.config.ts     # Configuração central do Playwright Test Runner (Local & CI)
+├── 📄 tsconfig.json            # Validação estática estrita TypeScript (strict: true)
 └── 📄 package.json             # Dependências e scripts NPM
 ```
 

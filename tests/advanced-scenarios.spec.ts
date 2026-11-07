@@ -2,108 +2,99 @@
 // seed: tests/seed.spec.ts
 
 import { test } from '../fixtures/pom.fixture';
-import { USERS, ERROR_MESSAGES } from '../test-data/users';
-import { PRODUCTS, ALL_PRODUCT_SLUGS, CUSTOMER } from '../test-data/checkout';
+import { USERS } from '../test-data/users';
+import { PRODUCTS, ALL_PRODUCTS, CUSTOMER, ORDER_SUMMARIES } from '../test-data/checkout';
+import { ERROR_MESSAGES, EXTERNAL_LINKS, FOOTER_COPYRIGHT } from '../test-data/app-content';
 
-test.describe('Swag Labs - Cenários Avançados, Persistência, Rodapé e Personas', () => {
+test.describe('Swag Labs - Cenários Avançados, Persistência, Rodapé e Personas', { tag: '@regression' }, () => {
   test('CT01 - Menu Lateral: Reset App State deve limpar o carrinho imediatamente', async ({
     loginPage,
     inventoryPage,
+    sideMenu,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.addProductsToCart([PRODUCTS.backpack, PRODUCTS.bikeLight]);
+    await header.expectCartBadgeCount(2);
 
-    await inventoryPage.addProductBySlug(PRODUCTS.backpack.slug);
-    await inventoryPage.addProductBySlug(PRODUCTS.bikeLight.slug);
-    await inventoryPage.expectCartBadgeCount(2);
-
-    await loginPage.resetAppState();
-    await inventoryPage.expectCartBadgeCount(0);
+    await sideMenu.resetAppState();
+    await header.expectCartBadgeCount(0);
   });
 
   test('CT02 - Menu Lateral: Validar link About e retornar ao catálogo via All Items a partir do Carrinho', async ({
     loginPage,
     inventoryPage,
     cartPage,
+    sideMenu,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.goToCart();
+    await loginPage.loginAs(USERS.standard);
+    await header.goToCart();
     await cartPage.expectCartLoaded(0);
 
-    await loginPage.expectAboutLinkAndNavigateToAllItems();
-    await inventoryPage.expectCatalogLoaded(6);
+    await sideMenu.open();
+    await sideMenu.expectAboutLinkHref(EXTERNAL_LINKS.about);
+    await sideMenu.goToAllItems();
+    await inventoryPage.expectCatalogLoaded();
   });
 
   test('CT03 - Capacidade Máxima: Compra E2E com todos os 6 produtos do catálogo e validação da soma total ($140.34)', async ({
     loginPage,
     inventoryPage,
     cartPage,
-    checkoutPage,
+    checkoutInformationPage,
+    checkoutOverviewPage,
+    checkoutCompletePage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.addProductsToCart(ALL_PRODUCTS);
+    await header.expectCartBadgeCount(ALL_PRODUCTS.length);
 
-    for (const slug of ALL_PRODUCT_SLUGS) {
-      await inventoryPage.addProductBySlug(slug);
-    }
-    await inventoryPage.expectCartBadgeCount(6);
-
-    await inventoryPage.goToCart();
-    await cartPage.expectCartLoaded(6);
-
+    await header.goToCart();
+    await cartPage.expectCartLoaded(ALL_PRODUCTS.length);
     await cartPage.proceedToCheckout();
-    await checkoutPage.expectStepOneLoaded();
-    await checkoutPage.fillCustomerInfoAndContinue(
-      CUSTOMER.firstName,
-      CUSTOMER.lastName,
-      CUSTOMER.postalCode
-    );
 
-    await checkoutPage.expectOverviewLoaded('Item total: $129.94', 'Tax: $10.40', 'Total: $140.34');
-    await checkoutPage.finishOrder();
-    await checkoutPage.expectOrderComplete();
+    await checkoutInformationPage.expectLoaded();
+    await checkoutInformationPage.submitCustomerInfo(CUSTOMER);
+
+    await checkoutOverviewPage.expectLoaded(ORDER_SUMMARIES.allProducts);
+    await checkoutOverviewPage.finish();
+    await checkoutCompletePage.expectLoaded();
   });
 
   test('CT04 - Cancelamento no Checkout Step 2 (Overview) deve retornar ao catálogo mantendo itens no carrinho', async ({
     loginPage,
     inventoryPage,
     cartPage,
-    checkoutPage,
+    checkoutInformationPage,
+    checkoutOverviewPage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.addProductBySlug(PRODUCTS.backpack.slug);
-    await inventoryPage.goToCart();
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.addProductToCart(PRODUCTS.backpack);
+    await header.goToCart();
     await cartPage.proceedToCheckout();
+    await checkoutInformationPage.submitCustomerInfo(CUSTOMER);
+    await checkoutOverviewPage.expectLoaded(ORDER_SUMMARIES.backpack);
 
-    await checkoutPage.fillCustomerInfoAndContinue(
-      CUSTOMER.firstName,
-      CUSTOMER.lastName,
-      CUSTOMER.postalCode
-    );
-    await checkoutPage.expectOverviewLoaded('Item total: $29.99', 'Tax: $2.40', 'Total: $32.39');
-
-    await checkoutPage.cancelFromOverview();
-    await inventoryPage.expectCatalogLoaded(6);
-    await inventoryPage.expectCartBadgeCount(1);
+    await checkoutOverviewPage.cancel();
+    await inventoryPage.expectCatalogLoaded();
+    await header.expectCartBadgeCount(1);
   });
 
   test('CT05 - Persistência de Sessão: Recarregar a página (Reload/F5) deve manter os produtos no carrinho', async ({
     loginPage,
     inventoryPage,
+    header,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.addProductBySlug(PRODUCTS.backpack.slug);
-    await inventoryPage.addProductBySlug(PRODUCTS.onesie.slug);
-    await inventoryPage.expectCartBadgeCount(2);
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.addProductsToCart([PRODUCTS.backpack, PRODUCTS.onesie]);
+    await header.expectCartBadgeCount(2);
 
-    await inventoryPage.reloadCatalog();
-    await inventoryPage.expectCatalogLoaded(6);
-    await inventoryPage.expectCartBadgeCount(2);
+    await inventoryPage.reload();
+    await inventoryPage.expectCatalogLoaded();
+    await header.expectCartBadgeCount(2);
   });
 
   test('CT06 - Auth Guard Completo: Bloquear acesso direto sem login ao Carrinho (/cart.html) e ao Checkout (/checkout-step-one.html)', async ({
@@ -121,21 +112,22 @@ test.describe('Swag Labs - Cenários Avançados, Persistência, Rodapé e Person
   test('CT07 - Rodapé (Footer): Validar links de redes sociais (X/Twitter, Facebook, LinkedIn) e aviso de Copyright', async ({
     loginPage,
     inventoryPage,
+    footer,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.standard.username, USERS.standard.password);
-    await inventoryPage.expectCatalogLoaded(6);
-    await inventoryPage.expectFooterLinksAndCopyright();
+    await loginPage.loginAs(USERS.standard);
+    await inventoryPage.expectCatalogLoaded();
+    await footer.expectSocialLinks(EXTERNAL_LINKS);
+    await footer.expectCopyright(FOOTER_COPYRIGHT);
   });
 
-  test('CT08 - Persona Especial: performance_glitch_user deve autenticar e carregar o catálogo resiliando à alta latência', async ({
+  test('CT08 - Persona Especial: performance_glitch_user deve autenticar e carregar o catálogo resistindo à alta latência', async ({
     loginPage,
     inventoryPage,
+    sideMenu,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.performanceGlitch.username, USERS.performanceGlitch.password);
-    await inventoryPage.expectCatalogLoaded(6);
-    await loginPage.logout();
+    await loginPage.loginAs(USERS.performanceGlitch);
+    await inventoryPage.expectCatalogLoaded();
+    await sideMenu.logout();
     await loginPage.expectLoginPageLoaded();
   });
 
@@ -143,10 +135,8 @@ test.describe('Swag Labs - Cenários Avançados, Persistência, Rodapé e Person
     loginPage,
     inventoryPage,
   }) => {
-    await loginPage.goto();
-    await loginPage.login(USERS.problem.username, USERS.problem.password);
-    await inventoryPage.expectCatalogLoaded(6);
-    await inventoryPage.expectBackpackImageSrcContains('sl-404');
+    await loginPage.loginAs(USERS.problem);
+    await inventoryPage.expectCatalogLoaded();
+    await inventoryPage.expectProductImageSrcContains(PRODUCTS.backpack, 'sl-404');
   });
 });
-
